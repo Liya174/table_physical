@@ -1,25 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import s from './App.module.css';
+import UsersTable from './components/UsersTable/UsersTable';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import data from './data.json';
+
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      data
+    } 
+  }
+
+  render() {
+    const { data } = this.state;
+
+    return (
+      <div className={s.container}>
+        <UsersTable data={data}/>
+      </div>
+    );
+  }
 }
 
 export default App;
