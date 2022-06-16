@@ -4,7 +4,11 @@ import { Table } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import 'antd/dist/antd.min.css';
 
+import EditableCell from './EditableCell';
+import EditableRow from './EditableRow';
 import s from './UsersList.module.css';
+
+export const EditableContext = React.createContext(null);
 
 const UsersList = ({ list }) => {  
   const [users, setUsers] = useState(list);
@@ -31,7 +35,7 @@ const UsersList = ({ list }) => {
   const getFilters = (field) => {
     const filtersSet = new Set();
 
-    list.forEach(user => {
+    users.forEach(user => {
       const value = user[field];
 
       if (Array.isArray(value)) {
@@ -51,17 +55,16 @@ const UsersList = ({ list }) => {
     });
   };
 
-
-  const columns = [
+  const defaultColumns = [
     {
       title: 'Пользователь',
+      dataIndex: 'username',
       key: 'username',
-      render: (user) => user.profile_link ? <a href={user.profile_link}>{user.username}</a> : user.username,
-      editable: true,
       sorter: (a, b) => sort(a.username, b.username),
       filters: getFilters('username'),
       filterSearch: true,
       onFilter: (value, user) => filter(value, user.username),
+      editable: true
     },
     {
       title: 'Имя',
@@ -71,6 +74,7 @@ const UsersList = ({ list }) => {
       filters: getFilters('first_name'),
       filterSearch: true,
       onFilter: (value, user) => filter(value, user.first_name),
+      editable: true
     },
     {
       title: 'Фамилия',
@@ -80,15 +84,18 @@ const UsersList = ({ list }) => {
       filters: getFilters('last_name'),
       filterSearch: true,
       onFilter: (value, user) => filter(value, user.last_name),
+      editable: true
     },
     {
       title: 'Email',
+      dataIndex: 'email',
       key: 'email',      
-      render: (data) => <a href={`mailto:${data.email}`}>{data.email}</a>,
+      render: (email) => <a href={`mailto:${email}`}>{email}</a>,
       sorter: (a, b) => sort(a.email, b.email),
       filters: getFilters('email'),
       filterSearch: true,
       onFilter: (value, user) => filter(value, user.email),
+      editable: true
     },
     {
       title: 'Оплачено',
@@ -96,14 +103,58 @@ const UsersList = ({ list }) => {
       key: 'pay_status',
       render: (isPaid) => isPaid ? <CheckOutlined style={{color: 'green'}} /> : <CloseOutlined style={{color: 'red'}} />,
       sorter: (a, b) => sort(a.pay_status, b.pay_status),
+      width: '10%',
+    },
+    {
+      dataIndex: 'profile_link',
+      key: 'profile_link',
+      render: (link) => link ? <a href={link}>Профиль</a> : '',
+      editable: true,
     },
   ];
+
+  const handleSave = (row) => {
+    const newData = [...users];
+
+    const index = newData.findIndex((item) => {
+      return row.id === item.id
+    });
+    const item = newData[index];
+    newData.splice(index, 1, { ...item, ...row });
+    setUsers(newData);
+  };
+
+  const components = {
+    body: {
+      row: EditableRow,
+      cell: EditableCell,
+    },
+  };
+
+  const columns = defaultColumns.map((col) => {
+    if (!col.editable) {
+      return col;
+    }
+
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        editable: col.editable,
+        dataIndex: col.dataIndex,
+        title: col.title,
+        handleSave,
+      }),
+    };
+  });
   
   return (
     <Table 
-      className={s.container}
+      className={s.table}
+      rowClassName={() => s.editableRow}
       dataSource={users} 
       columns={columns}
+      components={components}
       bordered
     />
   );

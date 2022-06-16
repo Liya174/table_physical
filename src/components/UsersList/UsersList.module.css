@@ -7,3 +7,8 @@
 .search {
   margin-bottom: 15px;
 }
+
+.editableCellValueWrap {
+  padding: 5px 12px;
+  cursor: cell;
+}
