@@ -1,19 +1,40 @@
 import React from 'react';
+import Fuse from 'fuse.js';
+
 import { Input, Table } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
-import 'antd/dist/antd.css';
+import 'antd/dist/antd.min.css';
 
 class UsersTable extends React.Component {  
   constructor(props) {
     super(props);
     this.state = { 
       searchQuery: '',
-      users: this.props.data
     };
   }
 
+  getUsers(data) {
+    const { searchQuery } = this.state;
+    let users = data;
+
+    if (searchQuery.trim().length > 1) {
+      const searchOptions = {
+        maxPatternLength: 32,
+        minMatchCharLength: 2,
+        keys: ['first_name', 'last_name'],
+      };
+
+      const fuse = new Fuse(users, searchOptions);
+      users = fuse.search(searchQuery).map(result => result.item);
+    }
+
+    return users;
+  }
+
   changeSearchQuery = (e) => {
-    this.searchQuery = e.currentTarget.value;
+    this.setState({
+      searchQuery: e.currentTarget.value
+    });
   };
 
   sort = (a, b) => {
@@ -73,11 +94,7 @@ class UsersTable extends React.Component {
       title: 'ФИО',
       key: 'name',
       render: (user) => user.profile_link ? <a href={user.profile_link}>{this.getName(user)}</a> : this.getName(user),
-      sorter: (a, b) => this.sort(this.getName(a), this.getName(b)),
-      filters: this.getFilters(['first_name', 'last_name']),
-      filterSearch: true,
-      onFilter: (value, user) => this.filter(value, this.getName(user)),
-      
+      sorter: (a, b) => this.sort(this.getName(a), this.getName(b)), 
     },
     {
       title: 'Email',
@@ -99,8 +116,8 @@ class UsersTable extends React.Component {
   render() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Input allowClear placeholder="Поиск пользователей" onChange={this.changeSearchQuery} style={{ marginBottom: 15 }} />
-        <Table dataSource={this.state.users} columns={this.columns} bordered/>
+        <Input allowClear placeholder="Поиск по ФИО" onChange={this.changeSearchQuery} style={{ marginBottom: 15 }} />
+        <Table dataSource={this.getUsers(this.props.data)} columns={this.columns} bordered/>
       </div>
     );
   }
