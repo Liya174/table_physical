@@ -38,10 +38,14 @@ class UsersTable extends React.Component {
   };
 
   sort = (a, b) => {
-    a = a || '';
-    b = b || '';
+    if (typeof a !== typeof b) {
+      return false;
+    }
 
-    return a.localeCompare(b);
+    if (typeof a === 'string') return a.localeCompare(b);
+    if (typeof a === 'boolean') return (a === b) ? 0 : a ? -1 : 1;
+
+    return false;
   };
 
   filter = (value, field) => {
@@ -108,8 +112,9 @@ class UsersTable extends React.Component {
     {
       title: 'Оплачено',
       dataIndex: 'pay_status',
-      key: 'payment_status',
-      render: (isPaid) => isPaid ? <CheckOutlined style={{color: 'green'}} /> : <CloseOutlined style={{color: 'red'}} />
+      key: 'pay_status',
+      render: (isPaid) => isPaid ? <CheckOutlined style={{color: 'green'}} /> : <CloseOutlined style={{color: 'red'}} />,
+      sorter: (a, b) => this.sort(a.pay_status, b.pay_status),
     },
   ];
   
