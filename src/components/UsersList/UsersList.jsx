@@ -1,43 +1,15 @@
-import React from 'react';
-import Fuse from 'fuse.js';
+import React, { useState } from 'react';
 
-import { Input, Table } from 'antd';
+import { Table } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import 'antd/dist/antd.min.css';
 
 import s from './UsersList.module.css';
 
-class UsersList extends React.Component {  
-  constructor(props) {
-    super(props);
-    this.state = { 
-      searchQuery: '',
-      users: this.props.list,
-    };
-  }
+const UsersList = ({ list }) => {  
+  const [users, setUsers] = useState(list);
 
-  getFilteredUsers(data) {
-    const { searchQuery, users } = this.state;
-
-    if (!searchQuery.trim().length) return users;
-    
-    const searchOptions = {
-      maxPatternLength: 32,
-      minMatchCharLength: 2,
-      keys: ['first_name', 'last_name'],
-    };
-
-    const fuse = new Fuse(users, searchOptions);
-    return fuse.search(searchQuery).map(result => result.item);
-  }
-
-  changeSearchQuery = (e) => {
-    this.setState({
-      searchQuery: e.currentTarget.value
-    });
-  };
-
-  sort = (a, b) => {
+  const sort = (a, b) => {
     if (typeof a !== typeof b) {
       return false;
     }
@@ -48,7 +20,7 @@ class UsersList extends React.Component {
     return false;
   };
 
-  filter = (value, field) => {
+  const filter = (value, field) => {
     if (typeof value !== 'string') {
       return false;
     }
@@ -56,17 +28,17 @@ class UsersList extends React.Component {
     return Array.isArray(field) ? field.includes(value) : value === field;
   };
 
-  getFilters = (field) => {
+  const getFilters = (field) => {
     const filtersSet = new Set();
 
-    this.props.list.forEach(user => {
+    list.forEach(user => {
       const value = user[field];
 
       if (Array.isArray(value)) {
         value.forEach(v => {
           filtersSet.add(v);
         });
-      } else if (typeof value === 'string') {
+      } else if (value && typeof value === 'string') {
         filtersSet.add(value);
       }
     });
@@ -80,53 +52,61 @@ class UsersList extends React.Component {
   };
 
 
-  getName = (user) => {
-    return `${user.first_name} ${user.last_name}`;
-  }
-
-  columns = [
+  const columns = [
     {
       title: 'Пользователь',
-      dataIndex: 'username',
       key: 'username',
+      render: (user) => user.profile_link ? <a href={user.profile_link}>{user.username}</a> : user.username,
       editable: true,
-      sorter: (a, b) => this.sort(a.username, b.username),
-      filters: this.getFilters('username'),
+      sorter: (a, b) => sort(a.username, b.username),
+      filters: getFilters('username'),
       filterSearch: true,
-      onFilter: (value, user) => this.filter(value, user.username),
+      onFilter: (value, user) => filter(value, user.username),
     },
     {
-      title: 'ФИО',
-      key: 'name',
-      render: (user) => user.profile_link ? <a href={user.profile_link}>{this.getName(user)}</a> : this.getName(user),
-      sorter: (a, b) => this.sort(this.getName(a), this.getName(b)), 
+      title: 'Имя',
+      dataIndex: 'first_name',
+      key: 'first_name',
+      sorter: (a, b) => sort(a.first_name, b.first_name),
+      filters: getFilters('first_name'),
+      filterSearch: true,
+      onFilter: (value, user) => filter(value, user.first_name),
+    },
+    {
+      title: 'Фамилия',
+      dataIndex: 'last_name',
+      key: 'last_name',
+      sorter: (a, b) => sort(a.last_name, b.last_name),
+      filters: getFilters('last_name'),
+      filterSearch: true,
+      onFilter: (value, user) => filter(value, user.last_name),
     },
     {
       title: 'Email',
       key: 'email',      
       render: (data) => <a href={`mailto:${data.email}`}>{data.email}</a>,
-      sorter: (a, b) => this.sort(a.email, b.email),
-      filters: this.getFilters('email'),
+      sorter: (a, b) => sort(a.email, b.email),
+      filters: getFilters('email'),
       filterSearch: true,
-      onFilter: (value, user) => this.filter(value, user.email),
+      onFilter: (value, user) => filter(value, user.email),
     },
     {
       title: 'Оплачено',
       dataIndex: 'pay_status',
       key: 'pay_status',
       render: (isPaid) => isPaid ? <CheckOutlined style={{color: 'green'}} /> : <CloseOutlined style={{color: 'red'}} />,
-      sorter: (a, b) => this.sort(a.pay_status, b.pay_status),
+      sorter: (a, b) => sort(a.pay_status, b.pay_status),
     },
   ];
   
-  render() {
-    return (
-      <div className={s.container}>
-        <Input className={s.search} allowClear placeholder="Поиск по ФИО" onChange={this.changeSearchQuery} />
-        <Table dataSource={this.getFilteredUsers(this.state.users)} columns={this.columns} bordered/>
-      </div>
-    );
-  }
+  return (
+    <Table 
+      className={s.container}
+      dataSource={users} 
+      columns={columns}
+      bordered
+    />
+  );
 }
 
 export default UsersList;
