@@ -5,30 +5,30 @@ import { Input, Table } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import 'antd/dist/antd.min.css';
 
-class UsersTable extends React.Component {  
+import s from './UsersList.module.css';
+
+class UsersList extends React.Component {  
   constructor(props) {
     super(props);
     this.state = { 
       searchQuery: '',
+      users: this.props.list,
     };
   }
 
-  getUsers(data) {
-    const { searchQuery } = this.state;
-    let users = data;
+  getFilteredUsers(data) {
+    const { searchQuery, users } = this.state;
 
-    if (searchQuery.trim().length > 1) {
-      const searchOptions = {
-        maxPatternLength: 32,
-        minMatchCharLength: 2,
-        keys: ['first_name', 'last_name'],
-      };
+    if (!searchQuery.trim().length) return users;
+    
+    const searchOptions = {
+      maxPatternLength: 32,
+      minMatchCharLength: 2,
+      keys: ['first_name', 'last_name'],
+    };
 
-      const fuse = new Fuse(users, searchOptions);
-      users = fuse.search(searchQuery).map(result => result.item);
-    }
-
-    return users;
+    const fuse = new Fuse(users, searchOptions);
+    return fuse.search(searchQuery).map(result => result.item);
   }
 
   changeSearchQuery = (e) => {
@@ -59,7 +59,7 @@ class UsersTable extends React.Component {
   getFilters = (field) => {
     const filtersSet = new Set();
 
-    this.props.data.forEach(user => {
+    this.props.list.forEach(user => {
       const value = user[field];
 
       if (Array.isArray(value)) {
@@ -89,6 +89,7 @@ class UsersTable extends React.Component {
       title: 'Пользователь',
       dataIndex: 'username',
       key: 'username',
+      editable: true,
       sorter: (a, b) => this.sort(a.username, b.username),
       filters: this.getFilters('username'),
       filterSearch: true,
@@ -120,12 +121,12 @@ class UsersTable extends React.Component {
   
   render() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Input allowClear placeholder="Поиск по ФИО" onChange={this.changeSearchQuery} style={{ marginBottom: 15 }} />
-        <Table dataSource={this.getUsers(this.props.data)} columns={this.columns} bordered/>
+      <div className={s.container}>
+        <Input className={s.search} allowClear placeholder="Поиск по ФИО" onChange={this.changeSearchQuery} />
+        <Table dataSource={this.getFilteredUsers(this.state.users)} columns={this.columns} bordered/>
       </div>
     );
   }
 }
 
-export default UsersTable;
+export default UsersList;

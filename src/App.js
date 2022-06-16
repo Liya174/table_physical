@@ -1,6 +1,6 @@
 import React from 'react';
 import s from './App.module.css';
-import UsersTable from './components/UsersTable/UsersTable';
+import UsersList from './components/UsersList/UsersList';
 
 import data from './data.json';
 
@@ -9,16 +9,16 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      data
+      usersList: data
     } 
   }
 
   render() {
-    const { data } = this.state;
+    const { usersList } = this.state;
 
     return (
       <div className={s.container}>
-        <UsersTable data={data}/>
+        <UsersList list={usersList}/>
       </div>
     );
   }
