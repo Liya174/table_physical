@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { Table } from 'antd';
+import { Button, Table } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import 'antd/dist/antd.min.css';
 
@@ -12,6 +12,7 @@ export const EditableContext = React.createContext(null);
 
 const UsersList = ({ list }) => {  
   const [users, setUsers] = useState(list);
+  const [nextId, setNextId] = useState(Math.max(...list.map(user => user.id)) + 1);
 
   const sort = (a, b) => {
     if (typeof a !== typeof b) {
@@ -124,6 +125,20 @@ const UsersList = ({ list }) => {
     setUsers(newData);
   };
 
+  const handleAdd = () => {
+    const newUser = {
+      id: nextId,
+      email: "",
+      first_name: "",
+      pay_status: false,
+      last_name: "",
+      username: "",
+      profile_link: ""
+    };
+    setUsers([...users, newUser]);
+    setNextId(nextId + 1);
+  };
+
   const components = {
     body: {
       row: EditableRow,
@@ -149,14 +164,18 @@ const UsersList = ({ list }) => {
   });
   
   return (
-    <Table 
-      className={s.table}
-      rowClassName={() => s.editableRow}
-      dataSource={users} 
-      columns={columns}
-      components={components}
-      bordered
-    />
+    <div className={s.container}>
+      <Table
+        className={s.table}
+        dataSource={users} 
+        columns={columns}
+        components={components}
+        bordered
+      />
+      <Button onClick={handleAdd} type="primary" style={{ marginTop: 16 }}>
+        Добавить нового пользователя
+      </Button>
+    </div>
   );
 }
 
